@@ -1,0 +1,153 @@
+/* 进度卡片 */
+.progress-card {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  text-align: center;
+}
+
+.water-icon {
+  font-size: 120rpx;
+  margin-bottom: 20rpx;
+}
+
+.progress-text {
+  font-size: 32rpx;
+  color: #1976d2;
+  margin-bottom: 10rpx;
+  font-weight: 500;
+}
+
+.progress-amount {
+  font-size: 48rpx;
+  color: #0d47a1;
+  font-weight: 600;
+  margin-bottom: 30rpx;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 10rpx;
+  overflow: hidden;
+  margin-bottom: 15rpx;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4fc3f7, #29b6f6);
+  border-radius: 10rpx;
+  transition: width 0.3s ease;
+}
+
+.progress-percent {
+  font-size: 28rpx;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+/* 快速添加按钮 */
+.quick-add-buttons {
+  gap: 20rpx;
+}
+
+.quick-btn {
+  flex: 1;
+  min-width: 150rpx;
+  background: linear-gradient(45deg, #4fc3f7, #29b6f6);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 25rpx 20rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  margin-bottom: 15rpx;
+}
+
+.quick-btn:active {
+  background: linear-gradient(45deg, #29b6f6, #0288d1);
+  transform: scale(0.98);
+}
+
+/* 自定义输入 */
+.custom-input {
+  border-top: 2rpx solid #f0f0f0;
+  padding-top: 20rpx;
+}
+
+.input {
+  flex: 1;
+  background: #f8f9fa;
+  border: 2rpx solid #e9ecef;
+  border-radius: 25rpx;
+  padding: 20rpx 25rpx;
+  font-size: 30rpx;
+  margin-right: 20rpx;
+}
+
+.input:focus {
+  border-color: #4fc3f7;
+  background: white;
+}
+
+/* 记录列表 */
+.record-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.record-item {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.record-item:last-child {
+  border-bottom: none;
+}
+
+.record-amount {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #4fc3f7;
+}
+
+.record-time {
+  font-size: 24rpx;
+  margin-top: 5rpx;
+}
+
+.delete-btn {
+  background: #ffebee;
+  color: #f44336;
+  border: 1rpx solid #ffcdd2;
+  border-radius: 20rpx;
+  padding: 10rpx 20rpx;
+  font-size: 24rpx;
+}
+
+.delete-btn:active {
+  background: #ffcdd2;
+}
+
+/* 鼓励卡片 */
+.encouragement-card {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 2rpx solid #ffcc02;
+}
+
+.encouragement-icon {
+  font-size: 60rpx;
+  margin-right: 20rpx;
+}
+
+.encouragement-text {
+  font-size: 30rpx;
+  color: #f57c00;
+  font-weight: 500;
+  text-align: center;
+  flex: 1;
+}
+
+/* 提醒开关 */
+switch {
+  transform: scale(1.2);
+}

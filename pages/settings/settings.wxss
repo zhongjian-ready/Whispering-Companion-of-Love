@@ -1,0 +1,205 @@
+/* 目标设置 */
+.goal-setting {
+  background: #f8f9fa;
+  border-radius: 15rpx;
+  padding: 30rpx;
+}
+
+.goal-display {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.goal-amount {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #4fc3f7;
+  margin-bottom: 10rpx;
+}
+
+.goal-desc {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.goal-controls {
+  display: flex;
+  gap: 15rpx;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.control-btn {
+  min-width: 120rpx;
+  padding: 15rpx 20rpx;
+  border-radius: 25rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  background: #e0e0e0;
+  color: #666;
+  border: none;
+}
+
+.control-btn.primary {
+  background: linear-gradient(45deg, #4fc3f7, #29b6f6);
+  color: white;
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+/* 设置项 */
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 25rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  flex: 1;
+}
+
+.label-text {
+  font-size: 32rpx;
+  color: #333;
+  margin-bottom: 5rpx;
+}
+
+.label-desc {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 时间范围设置 */
+.time-range {
+  display: flex;
+  gap: 30rpx;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.time-item {
+  flex: 1;
+  text-align: center;
+}
+
+.time-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 15rpx;
+}
+
+/* 快速金额设置 */
+.quick-amounts-setting {
+  margin-top: 20rpx;
+}
+
+.amounts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15rpx;
+  margin-bottom: 20rpx;
+}
+
+.amount-item {
+  text-align: center;
+  padding: 20rpx 10rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 15rpx;
+  font-size: 28rpx;
+  color: #666;
+  background: white;
+  transition: all 0.3s;
+}
+
+.amount-item.active {
+  border-color: #4fc3f7;
+  background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.amount-item:active {
+  transform: scale(0.95);
+}
+
+.setting-desc {
+  font-size: 26rpx;
+  color: #999;
+  text-align: center;
+}
+
+/* 按钮样式 */
+.btn-danger {
+  background: #ffebee;
+  color: #f44336;
+  border: 1rpx solid #ffcdd2;
+  border-radius: 20rpx;
+  padding: 12rpx 24rpx;
+  font-size: 28rpx;
+}
+
+.btn-danger:active {
+  background: #ffcdd2;
+}
+
+/* 关于信息 */
+.about-info {
+  margin-top: 20rpx;
+}
+
+.about-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.about-item:last-child {
+  border-bottom: none;
+}
+
+.about-label {
+  font-size: 30rpx;
+  color: #333;
+}
+
+.about-value {
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 健康小贴士 */
+.health-tips {
+  margin-top: 30rpx;
+  padding: 25rpx;
+  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+  border-radius: 15rpx;
+}
+
+.tips-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #7b1fa2;
+  margin-bottom: 15rpx;
+}
+
+.tips-content {
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: #4a148c;
+}
+
+/* Switch 组件样式调整 */
+switch {
+  transform: scale(1.1);
+}

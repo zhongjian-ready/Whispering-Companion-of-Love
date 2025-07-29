@@ -1,0 +1,164 @@
+<view class="container">
+  <!-- 每日目标设置 -->
+  <view class="card">
+    <view class="title">每日饮水目标</view>
+    <view class="goal-setting">
+      <view class="goal-display">
+        <view class="goal-amount">{{dailyGoal}}ml</view>
+        <view class="goal-desc">建议成人每日饮水量 1500-2500ml</view>
+      </view>
+      <view class="goal-controls">
+        <button 
+          class="control-btn" 
+          bindtap="adjustGoal" 
+          data-delta="-100"
+        >-100</button>
+        <button 
+          class="control-btn" 
+          bindtap="adjustGoal" 
+          data-delta="-50"
+        >-50</button>
+        <button 
+          class="control-btn primary" 
+          bindtap="adjustGoal" 
+          data-delta="50"
+        >+50</button>
+        <button 
+          class="control-btn primary" 
+          bindtap="adjustGoal" 
+          data-delta="100"
+        >+100</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="title">提醒设置</view>
+    
+    <!-- 开启提醒 -->
+    <view class="setting-item">
+      <view class="setting-label">
+        <view class="label-text">开启提醒</view>
+        <view class="label-desc">定时提醒您喝水</view>
+      </view>
+      <switch 
+        checked="{{reminderEnabled}}" 
+        bindchange="toggleReminder"
+        color="#4fc3f7"
+      />
+    </view>
+
+    <!-- 提醒间隔 -->
+    <view class="setting-item" wx:if="{{reminderEnabled}}">
+      <view class="setting-label">
+        <view class="label-text">提醒间隔</view>
+        <view class="label-desc">每{{reminderInterval}}分钟提醒一次</view>
+      </view>
+      <picker 
+        mode="selector" 
+        range="{{intervalOptions}}" 
+        range-key="label"
+        value="{{intervalIndex}}"
+        bindchange="onIntervalChange"
+      >
+        <button class="btn-secondary">{{intervalOptions[intervalIndex].label}}</button>
+      </picker>
+    </view>
+
+    <!-- 提醒时间段 -->
+    <view class="time-range" wx:if="{{reminderEnabled}}">
+      <view class="time-item">
+        <view class="time-label">开始时间</view>
+        <picker 
+          mode="time" 
+          value="{{startTime}}" 
+          bindchange="onStartTimeChange"
+        >
+          <button class="btn-secondary">{{startTime}}</button>
+        </picker>
+      </view>
+      <view class="time-item">
+        <view class="time-label">结束时间</view>
+        <picker 
+          mode="time" 
+          value="{{endTime}}" 
+          bindchange="onEndTimeChange"
+        >
+          <button class="btn-secondary">{{endTime}}</button>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快速添加设置 -->
+  <view class="card">
+    <view class="title">快速添加设置</view>
+    <view class="quick-amounts-setting">
+      <view class="amounts-grid">
+        <view 
+          class="amount-item {{item.active ? 'active' : ''}}" 
+          wx:for="{{quickAmountOptions}}" 
+          wx:key="value"
+          bindtap="toggleQuickAmount"
+          data-value="{{item.value}}"
+        >
+          {{item.value}}ml
+        </view>
+      </view>
+      <view class="setting-desc">选择常用的饮水量，方便快速添加</view>
+    </view>
+  </view>
+
+  <!-- 数据管理 -->
+  <view class="card">
+    <view class="title">数据管理</view>
+    
+    <view class="setting-item">
+      <view class="setting-label">
+        <view class="label-text">导出数据</view>
+        <view class="label-desc">导出饮水记录数据</view>
+      </view>
+      <button class="btn-secondary" bindtap="exportData">导出</button>
+    </view>
+
+    <view class="setting-item">
+      <view class="setting-label">
+        <view class="label-text">清空数据</view>
+        <view class="label-desc">清空所有饮水记录</view>
+      </view>
+      <button class="btn-danger" bindtap="clearData">清空</button>
+    </view>
+  </view>
+
+  <!-- 关于 -->
+  <view class="card">
+    <view class="title">关于</view>
+    
+    <view class="about-info">
+      <view class="about-item">
+        <view class="about-label">版本</view>
+        <view class="about-value">1.0.0</view>
+      </view>
+      
+      <view class="about-item">
+        <view class="about-label">开发者</view>
+        <view class="about-value">喝水小助手团队</view>
+      </view>
+      
+      <view class="about-item">
+        <view class="about-label">联系我们</view>
+        <button class="btn-secondary" bindtap="contactUs">反馈建议</button>
+      </view>
+    </view>
+
+    <view class="health-tips">
+      <view class="tips-title">💡 健康小贴士</view>
+      <view class="tips-content">
+        <text>• 晨起一杯温水，唤醒身体活力\n</text>
+        <text>• 餐前半小时饮水，有助消化\n</text>
+        <text>• 运动后及时补水，维持体液平衡\n</text>
+        <text>• 睡前2小时减少饮水，保证睡眠质量</text>
+      </view>
+    </view>
+  </view>
+</view>

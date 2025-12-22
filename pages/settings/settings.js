@@ -1,4 +1,5 @@
 const app = getApp();
+const { getSettings } = require('../../utils/api');
 
 Page({
   data: {
@@ -27,11 +28,74 @@ Page({
     ],
   },
 
-  onLoad() {
-    this.loadSettings();
+  onShow() {
+    this.fetchSettings();
   },
 
-  loadSettings() {
+  fetchSettings() {
+    wx.showLoading({
+      title: '加载中...',
+    });
+
+    getSettings()
+      .then(data => {
+        const {
+          daily_goal,
+          reminder_enabled,
+          reminder_interval,
+          reminder_start_time,
+          reminder_end_time,
+          quick_add_presets,
+        } = data;
+
+        // 找到当前间隔对应的索引
+        const intervalIndex = this.data.intervalOptions.findIndex(
+          option => option.value === reminder_interval
+        );
+
+        // 处理 quick_add_presets 为 null 的情况
+        const safeQuickAddPresets = quick_add_presets || [200, 300, 500, 800];
+
+        // 加载快速添加金额的活跃状态
+        const quickAmountOptions = this.data.quickAmountOptions.map(option => ({
+          ...option,
+          active: safeQuickAddPresets.includes(option.value),
+        }));
+
+        this.setData({
+          dailyGoal: daily_goal,
+          reminderEnabled: reminder_enabled,
+          reminderInterval: reminder_interval,
+          startTime: reminder_start_time,
+          endTime: reminder_end_time,
+          intervalIndex: intervalIndex >= 0 ? intervalIndex : 2,
+          quickAmountOptions,
+        });
+
+        // 同步到全局数据
+        app.globalData.dailyGoal = daily_goal;
+        app.globalData.reminderSettings = {
+          enabled: reminder_enabled,
+          interval: reminder_interval,
+          startTime: reminder_start_time,
+          endTime: reminder_end_time,
+        };
+        app.globalData.quickAmounts = safeQuickAddPresets;
+
+        wx.hideLoading();
+      })
+      .catch(err => {
+        console.error('获取设置失败', err);
+        wx.hideLoading();
+        wx.showToast({
+          title: '加载失败，使用本地配置',
+          icon: 'none',
+        });
+        this.loadLocalSettings();
+      });
+  },
+
+  loadLocalSettings() {
     const globalData = app.globalData;
     const { reminderSettings } = globalData;
 

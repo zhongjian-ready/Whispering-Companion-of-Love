@@ -1,0 +1,6 @@
+.vscode/
+node_modules/
+.DS_Store
+npm-debug.log
+project.private.config.json
+miniprogram_npm/

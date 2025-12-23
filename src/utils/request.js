@@ -6,14 +6,26 @@ const SERVICE_NAME = 'golang-o5p0'; // 替换为你的服务名称
 
 const request = (url, method = 'GET', data = {}) => {
   return new Promise((resolve, reject) => {
-    // 判断是否使用云托管 (生产环境)
-    // 兼容字符串 'true' 和布尔值 true
-    const envVal = process.env.USE_CLOUD_CONTAINER;
-    const useCloud = envVal === 'true' || envVal === true;
+    // 获取当前小程序环境版本 (develop: 开发版, trial: 体验版, release: 正式版)
+    const accountInfo = Taro.getAccountInfoSync();
+    const envVersion = accountInfo.miniProgram
+      ? accountInfo.miniProgram.envVersion
+      : 'develop';
 
-    console.log(
-      `[API] Request: ${url}, Method: ${method}, USE_CLOUD_CONTAINER: ${envVal}, useCloud: ${useCloud}`
-    );
+    let useCloud = false;
+
+    if (envVersion === 'trial' || envVersion === 'release') {
+      // 策略1：体验版和正式版 -> 强制使用云托管
+      useCloud = true;
+    } else {
+      // 策略2：开发版 (IDE) -> 根据构建命令的配置决定
+      // npm run dev:weapp -> USE_CLOUD_CONTAINER="false" -> 使用本地服务
+      // npm run build:weapp -> USE_CLOUD_CONTAINER="true" -> 使用云托管 (方便在IDE测试云服务)
+      const envVal = process.env.USE_CLOUD_CONTAINER;
+      useCloud = envVal === 'true' || envVal === true;
+    }
+
+    console.log(`[API] ${url} | Env:${envVersion} | Cloud:${useCloud}`);
 
     if (useCloud) {
       if (!Taro.cloud) {

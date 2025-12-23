@@ -189,4 +189,20 @@ Page({
       }, 500);
     }
   },
+
+  onShareAppMessage() {
+    return {
+      title: '今天你喝水了吗？快来记录一下吧！💧',
+      path: '/pages/index/index',
+      imageUrl: '/images/share-cover.png', // 如果有自定义分享图，可以在这里设置
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: `我今天已经喝了 ${this.data.todayDrink}ml 水，完成了 ${this.data.progressPercent}% 的目标！`,
+      query: '',
+      imageUrl: '',
+    };
+  },
 });

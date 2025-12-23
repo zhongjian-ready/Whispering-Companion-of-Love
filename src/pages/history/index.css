@@ -1,0 +1,201 @@
+.container {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+/* 统计网格 */
+.stats-card {
+  background: #e8f5e9; /* Greenish background as per screenshot */
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.6); /* Semi-transparent white */
+  border-radius: 12px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2e7d32; /* Darker green text */
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 当日统计 */
+.day-total {
+  font-size: 28px; /* Larger text */
+  font-weight: 600;
+  color: #4fc3f7; /* Blue text */
+}
+
+.day-status {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.day-status.completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.day-status.incomplete {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.day-progress {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #4fc3f7;
+  border-radius: 4px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #666;
+  width: 40px;
+  text-align: right;
+}
+
+/* 记录列表 */
+.record-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.record-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.record-amount {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.record-time {
+  font-size: 14px;
+  color: #999;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.empty-text {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: #999;
+}
+
+/* 图表 */
+.chart-container {
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.chart-bar {
+  width: 30px;
+  background: #4fc3f7;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: height 0.3s ease;
+}
+
+.bar-value {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #666;
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.chart-label {
+  width: 30px;
+  text-align: center;
+  font-size: 10px;
+  color: #999;
+}

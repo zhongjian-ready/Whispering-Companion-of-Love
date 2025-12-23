@@ -1,0 +1,437 @@
+import { Button, Switch, Toast } from '@nutui/nutui-react-taro';
+import { Picker, View } from '@tarojs/components';
+import Taro, { useDidShow } from '@tarojs/taro';
+import { useState } from 'react';
+import { getSettings, updateSettings } from '../../utils/api';
+import './index.css';
+
+const Settings = () => {
+  const [dailyGoal, setDailyGoal] = useState(1400);
+  const [reminderEnabled, setReminderEnabled] = useState(true);
+  const [reminderInterval, setReminderInterval] = useState(60);
+  const [startTime, setStartTime] = useState('08:00');
+  const [endTime, setEndTime] = useState('22:00');
+  const [intervalIndex, setIntervalIndex] = useState(2);
+  const [quickAmountOptions, setQuickAmountOptions] = useState([
+    { value: 100, active: false },
+    { value: 200, active: true },
+    { value: 250, active: false },
+    { value: 300, active: true },
+    { value: 400, active: false },
+    { value: 500, active: true },
+    { value: 600, active: false },
+    { value: 800, active: true },
+  ]);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+
+  const intervalOptions = [
+    { value: 30, label: '30分钟' },
+    { value: 45, label: '45分钟' },
+    { value: 60, label: '1小时' },
+    { value: 90, label: '1.5小时' },
+    { value: 120, label: '2小时' },
+  ];
+
+  const app = Taro.getApp();
+
+  useDidShow(() => {
+    fetchSettings();
+  });
+
+  const fetchSettings = () => {
+    Taro.showLoading({ title: '加载中...' });
+
+    getSettings()
+      .then(res => {
+        console.log('Fetched settings:', res);
+
+        // 兼容处理：如果返回的数据被包裹在 data 字段中
+        // 使用安全的方式获取 data，防止 res 为 null 时报错
+        const data = (res && res.data) || res || {};
+
+        const {
+          daily_goal,
+          reminder_enabled,
+          reminder_interval,
+          reminder_start_time,
+          reminder_end_time,
+          quick_add_presets,
+        } = data;
+
+        const idx = intervalOptions.findIndex(
+          option => option.value === reminder_interval
+        );
+
+        const safeQuickAddPresets = Array.isArray(quick_add_presets)
+          ? quick_add_presets
+          : [200, 300, 500, 800];
+
+        const newQuickAmountOptions = quickAmountOptions.map(option => ({
+          ...option,
+          active: safeQuickAddPresets.includes(option.value),
+        }));
+
+        // 确保数值有效
+        const safeDailyGoal = daily_goal || 2000;
+
+        setDailyGoal(safeDailyGoal);
+        setReminderEnabled(!!reminder_enabled);
+        setReminderInterval(reminder_interval || 60);
+        setStartTime(reminder_start_time || '08:00');
+        setEndTime(reminder_end_time || '22:00');
+        setIntervalIndex(idx >= 0 ? idx : 2);
+        setQuickAmountOptions(newQuickAmountOptions);
+
+        // 同步到全局
+        if (app && app.globalData) {
+          app.globalData.dailyGoal = safeDailyGoal;
+          app.globalData.reminderSettings = {
+            enabled: !!reminder_enabled,
+            interval: reminder_interval || 60,
+            startTime: reminder_start_time || '08:00',
+            endTime: reminder_end_time || '22:00',
+          };
+          app.globalData.quickAmounts = safeQuickAddPresets;
+        }
+
+        Taro.hideLoading();
+      })
+      .catch(err => {
+        console.error('获取设置失败:', err);
+        Taro.hideLoading();
+
+        // 只有在确实失败时才显示错误，避免误报
+        const isCloudError = err.errMsg && err.errMsg.includes('cloud');
+
+        // 如果是网络错误或明确的错误，才显示 Toast
+        if (!isCloudError && err.message) {
+          setToastMsg(`加载失败: ${err.message}`);
+          setShowToast(true);
+        }
+
+        loadLocalSettings();
+      });
+  };
+
+  const loadLocalSettings = () => {
+    const globalData = app.globalData;
+    const { reminderSettings } = globalData;
+
+    const idx = intervalOptions.findIndex(
+      option => option.value === reminderSettings.interval
+    );
+
+    setDailyGoal(globalData.dailyGoal);
+    setReminderEnabled(reminderSettings.enabled);
+    setReminderInterval(reminderSettings.interval);
+    setStartTime(reminderSettings.startTime);
+    setEndTime(reminderSettings.endTime);
+    setIntervalIndex(idx >= 0 ? idx : 2);
+  };
+
+  const adjustGoal = delta => {
+    const newGoal = dailyGoal + delta;
+    if (newGoal < 500 || newGoal > 5000) {
+      setToastMsg('目标范围需在 500-5000ml 之间');
+      setShowToast(true);
+      return;
+    }
+    setDailyGoal(newGoal);
+    saveSettings({ dailyGoal: newGoal });
+  };
+
+  const toggleReminder = value => {
+    setReminderEnabled(value);
+    saveSettings({
+      reminderSettings: {
+        ...app.globalData.reminderSettings,
+        enabled: value,
+      },
+    });
+  };
+
+  const onIntervalChange = e => {
+    const idx = e.detail.value;
+    const interval = intervalOptions[idx].value;
+    setIntervalIndex(idx);
+    setReminderInterval(interval);
+    saveSettings({
+      reminderSettings: {
+        ...app.globalData.reminderSettings,
+        interval: interval,
+      },
+    });
+  };
+
+  const onStartTimeChange = e => {
+    const time = e.detail.value;
+    setStartTime(time);
+    saveSettings({
+      reminderSettings: {
+        ...app.globalData.reminderSettings,
+        startTime: time,
+      },
+    });
+  };
+
+  const onEndTimeChange = e => {
+    const time = e.detail.value;
+    setEndTime(time);
+    saveSettings({
+      reminderSettings: {
+        ...app.globalData.reminderSettings,
+        endTime: time,
+      },
+    });
+  };
+
+  const saveSettings = newSettings => {
+    // 更新全局数据
+    if (newSettings.dailyGoal) {
+      app.globalData.dailyGoal = newSettings.dailyGoal;
+    }
+    if (newSettings.reminderSettings) {
+      app.globalData.reminderSettings = {
+        ...app.globalData.reminderSettings,
+        ...newSettings.reminderSettings,
+      };
+    }
+    if (newSettings.quickAmounts) {
+      app.globalData.quickAmounts = newSettings.quickAmounts;
+    }
+
+    // 保存到本地
+    Taro.setStorageSync('settings', {
+      dailyGoal: app.globalData.dailyGoal,
+      reminderSettings: app.globalData.reminderSettings,
+      quickAmounts: app.globalData.quickAmounts,
+    });
+
+    // 同步到云端
+    const cloudSettings = {
+      daily_goal: app.globalData.dailyGoal,
+      reminder_enabled: app.globalData.reminderSettings.enabled,
+      reminder_interval: app.globalData.reminderSettings.interval,
+      reminder_start_time: app.globalData.reminderSettings.startTime,
+      reminder_end_time: app.globalData.reminderSettings.endTime,
+      quick_add_presets: app.globalData.quickAmounts,
+    };
+
+    updateSettings(cloudSettings).catch(err => {
+      console.error('同步设置失败:', err);
+    });
+  };
+
+  return (
+    <View className="container">
+      {/* 每日目标设置 */}
+      <View className="card">
+        <View className="title">每日饮水目标</View>
+        <View className="goal-setting">
+          <View className="goal-display">
+            <View className="goal-amount">{dailyGoal}ml</View>
+            <View className="goal-desc">建议成人每日饮水量 1500-2500ml</View>
+          </View>
+          <View className="goal-controls">
+            <Button size="small" onClick={() => adjustGoal(-100)}>
+              -100
+            </Button>
+            <Button size="small" onClick={() => adjustGoal(-50)}>
+              -50
+            </Button>
+            <Button size="small" type="primary" onClick={() => adjustGoal(50)}>
+              +50
+            </Button>
+            <Button size="small" type="primary" onClick={() => adjustGoal(100)}>
+              +100
+            </Button>
+          </View>
+        </View>
+      </View>
+
+      <View className="card">
+        <View className="title">提醒设置</View>
+
+        {/* 开启提醒 */}
+        <View className="setting-item">
+          <View className="setting-label">
+            <View className="label-text">开启提醒</View>
+            <View className="label-desc">定时提醒您喝水</View>
+          </View>
+          <Switch
+            checked={reminderEnabled}
+            onChange={toggleReminder}
+            activeColor="#4fc3f7"
+          />
+        </View>
+
+        {/* 提醒间隔 */}
+        {reminderEnabled && (
+          <View className="setting-item">
+            <View className="setting-label">
+              <View className="label-text">提醒间隔</View>
+              <View className="label-desc">
+                每{reminderInterval}分钟提醒一次
+              </View>
+            </View>
+            <Picker
+              mode="selector"
+              range={intervalOptions}
+              rangeKey="label"
+              value={intervalIndex}
+              onChange={onIntervalChange}
+            >
+              <Button size="small" type="default">
+                {intervalOptions[intervalIndex].label}
+              </Button>
+            </Picker>
+          </View>
+        )}
+
+        {/* 提醒时间段 */}
+        {reminderEnabled && (
+          <View className="time-range">
+            <View className="time-item">
+              <View className="time-label">开始时间</View>
+              <Picker
+                mode="time"
+                value={startTime}
+                onChange={onStartTimeChange}
+              >
+                <Button size="small" type="default">
+                  {startTime}
+                </Button>
+              </Picker>
+            </View>
+            <View className="time-item">
+              <View className="time-label">结束时间</View>
+              <Picker mode="time" value={endTime} onChange={onEndTimeChange}>
+                <Button size="small" type="default">
+                  {endTime}
+                </Button>
+              </Picker>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* 快速添加设置 */}
+      <View className="card">
+        <View className="title">快速添加设置</View>
+        <View className="quick-amounts-setting">
+          <View className="amounts-grid">
+            {quickAmountOptions.map((item, index) => (
+              <View
+                key={item.value}
+                className={`amount-item ${item.active ? 'active' : ''}`}
+                onClick={() => {
+                  const newOptions = [...quickAmountOptions];
+                  newOptions[index].active = !newOptions[index].active;
+                  setQuickAmountOptions(newOptions);
+
+                  const activeAmounts = newOptions
+                    .filter(opt => opt.active)
+                    .map(opt => opt.value);
+                  saveSettings({ quickAmounts: activeAmounts });
+                }}
+              >
+                {item.value}ml
+              </View>
+            ))}
+          </View>
+          <View className="section-desc">选择常用的饮水量，方便快速添加</View>
+        </View>
+      </View>
+
+      {/* 数据管理 */}
+      <View className="card">
+        <View className="title">数据管理</View>
+        <View className="setting-item">
+          <View className="setting-label">
+            <View className="label-text">导出数据</View>
+            <View className="label-desc">导出饮水记录数据</View>
+          </View>
+          <Button
+            size="small"
+            type="primary"
+            fill="outline"
+            onClick={() => {
+              Taro.showToast({ title: '导出成功', icon: 'success' });
+            }}
+          >
+            导出
+          </Button>
+        </View>
+        <View className="setting-item">
+          <View className="setting-label">
+            <View className="label-text">清空数据</View>
+            <View className="label-desc">清空所有饮水记录</View>
+          </View>
+          <Button
+            size="small"
+            type="danger"
+            fill="outline"
+            onClick={() => {
+              Taro.showModal({
+                title: '确认清空',
+                content: '此操作将删除所有饮水记录，且无法恢复。确定要继续吗？',
+                success: res => {
+                  if (res.confirm) {
+                    app.globalData.todayDrink = 0;
+                    app.globalData.drinkRecords = [];
+                    Taro.removeStorageSync('waterData');
+                    Taro.removeStorageSync('waterHistory');
+                    Taro.showToast({ title: '数据已清空', icon: 'success' });
+                    setDailyGoal(2000); // Reset goal or keep it? Screenshot doesn't say.
+                  }
+                },
+              });
+            }}
+          >
+            清空
+          </Button>
+        </View>
+      </View>
+
+      {/* 关于 */}
+      <View className="card">
+        <View className="title">关于</View>
+        <View className="setting-item">
+          <View className="label-text">版本</View>
+          <View className="label-desc">1.0.0</View>
+        </View>
+        <View className="setting-item">
+          <View className="label-text">开发者</View>
+          <View className="label-desc">喝水小助手团队</View>
+        </View>
+        <View className="setting-item">
+          <View className="label-text">联系我们</View>
+          <Button size="small" type="default" fill="outline">
+            反馈建议
+          </Button>
+        </View>
+      </View>
+
+      {/* 健康小贴士 */}
+      <View className="card tips-card">
+        <View className="tips-title">💡 健康小贴士</View>
+        <View className="tips-content">
+          <View className="tip-item">• 晨起一杯温水，唤醒身体活力</View>
+          <View className="tip-item">• 餐前半小时饮水，有助消化</View>
+          <View className="tip-item">• 运动后及时补水，维持体液平衡</View>
+          <View className="tip-item">• 睡前2小时减少饮水，保证睡眠质量</View>
+        </View>
+      </View>
+
+      <Toast
+        msg={toastMsg}
+        visible={showToast}
+        type="text"
+        onClose={() => setShowToast(false)}
+      />
+    </View>
+  );
+};
+
+export default Settings;

@@ -1,0 +1,188 @@
+.container {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.text-light {
+  color: #999;
+  font-size: 14px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* 进度卡片 */
+.progress-card {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  text-align: center;
+}
+
+.water-icon {
+  font-size: 60px;
+  margin-bottom: 10px;
+}
+
+.progress-text {
+  font-size: 16px;
+  color: #1976d2;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.progress-amount {
+  font-size: 24px;
+  color: #0d47a1;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.progress-bar {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.progress-percent {
+  font-size: 14px;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+/* 快速添加按钮 */
+.quick-add-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.quick-btn {
+  width: 30%; /* 3 columns approx */
+  height: 50px;
+  background: #29b6f6; /* Solid blue as per screenshot */
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+.quick-btn.wide {
+  width: 100%;
+  margin-top: 5px;
+}
+
+/* 自定义输入 */
+.custom-input-container {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.custom-input {
+  flex: 1;
+  height: 44px;
+  background: #f5f7fa;
+  border-radius: 22px;
+  padding: 0 20px;
+  font-size: 14px;
+}
+
+.add-btn {
+  width: 80px;
+  height: 44px;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 22px;
+  border: none;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* 记录列表 */
+.record-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.record-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.record-amount {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.delete-btn {
+  font-size: 12px;
+  color: #ff5252;
+  background: rgba(255, 82, 82, 0.1);
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: none;
+}
+
+/* 鼓励语句 */
+.encouragement-card {
+  background: #fff3e0;
+  border: 1px solid #ffe0b2;
+}
+
+.encouragement-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.encouragement-text {
+  color: #f57c00;
+  font-weight: 500;
+}

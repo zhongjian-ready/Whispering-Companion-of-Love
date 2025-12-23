@@ -1,0 +1,152 @@
+.container {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* 目标设置 */
+.goal-setting {
+  text-align: center;
+}
+
+.goal-amount {
+  font-size: 36px;
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 5px;
+}
+
+.goal-desc {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 20px;
+}
+
+.goal-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* 设置项 */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.label-text {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.label-desc {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 时间范围 */
+.time-range {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.time-item {
+  flex: 1;
+  text-align: center;
+}
+
+.time-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+/* 快速添加设置 */
+.quick-amounts-setting {
+  margin-top: 10px;
+}
+
+.amounts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.amount-item {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #4fc3f7;
+  border-radius: 8px;
+  color: #4fc3f7;
+  font-size: 14px;
+  background: white;
+  transition: all 0.3s;
+}
+
+.amount-item.active {
+  background: #e1f5fe;
+  color: #0288d1;
+  border-color: #0288d1;
+  font-weight: 500;
+}
+
+.section-desc {
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  margin-top: 10px;
+}
+
+/* 健康小贴士 */
+.tips-card {
+  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+  border: none;
+}
+
+.tips-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #7b1fa2;
+  margin-bottom: 10px;
+}
+
+.tips-content {
+  padding-left: 5px;
+}
+
+.tip-item {
+  font-size: 13px;
+  color: #4a148c;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}

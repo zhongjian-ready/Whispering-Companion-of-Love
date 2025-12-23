@@ -2,7 +2,7 @@ import { Button, Switch, Toast } from '@nutui/nutui-react-taro';
 import { Picker, View } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import { useState } from 'react';
-import { getSettings, updateSettings } from '../../utils/api';
+import { getSettings, updateSettings } from '../../api/settings';
 import './index.css';
 
 const Settings = () => {

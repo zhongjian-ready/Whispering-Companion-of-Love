@@ -4,7 +4,7 @@
 
 // 微信云托管配置
 const CLOUD_ENV_ID = 'prod-7gbcggfq2dae4403'; // 替换为你的云托管环境ID
-const SERVICE_NAME = 'golang-o5p0-009'; // 替换为你的服务名称
+const SERVICE_NAME = 'golang-o5p0'; // 替换为你的服务名称
 
 const request = (url, method = 'GET', data = {}) => {
   return new Promise((resolve, reject) => {
@@ -13,7 +13,7 @@ const request = (url, method = 'GET', data = {}) => {
       config: {
         env: CLOUD_ENV_ID,
       },
-      path: url, // 填入业务自定义路径
+      path: url.startsWith('/') ? url : `/${url}`, // 填入业务自定义路径
       header: {
         'X-WX-SERVICE': SERVICE_NAME,
         'content-type': 'application/json',

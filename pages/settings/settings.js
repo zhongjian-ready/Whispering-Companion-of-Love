@@ -80,18 +80,16 @@ Page({
           startTime: reminder_start_time,
           endTime: reminder_end_time,
         };
-        app.globalData.quickAmounts = safeQuickAddPresets;
 
         wx.hideLoading();
       })
       .catch(err => {
-        console.error('获取设置失败', err);
+        console.error('获取设置失败:', err);
         wx.hideLoading();
         wx.showToast({
-          title: '加载失败，使用本地配置',
+          title: '加载设置失败',
           icon: 'none',
         });
-        this.loadLocalSettings();
       });
   },
 

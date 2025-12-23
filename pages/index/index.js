@@ -3,7 +3,7 @@ const app = getApp();
 Page({
   data: {
     todayDrink: 0,
-    dailyGoal: 2000,
+    dailyGoal: 1600,
     progressPercent: 0,
     quickAmounts: [200, 300, 500, 800],
     customAmount: '',

@@ -3,7 +3,7 @@ const app = getApp();
 Page({
   data: {
     todayDrink: 0,
-    dailyGoal: 1600,
+    dailyGoal: 1400,
     weekAverage: 0,
     totalDays: 0,
     goalRate: 0,

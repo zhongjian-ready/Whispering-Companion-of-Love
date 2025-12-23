@@ -3,7 +3,7 @@ export default defineAppConfig({
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#fff',
-    navigationBarTitleText: '喝水助手',
+    navigationBarTitleText: '爱的助手',
     navigationBarTextStyle: 'black',
   },
   tabBar: {

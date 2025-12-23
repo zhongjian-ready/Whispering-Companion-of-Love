@@ -6,7 +6,7 @@ import { getSettings, updateSettings } from '../../api/settings';
 import './index.css';
 
 const Settings = () => {
-  const [dailyGoal, setDailyGoal] = useState(1400);
+  const [dailyGoal, setDailyGoal] = useState(2000);
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [reminderInterval, setReminderInterval] = useState(60);
   const [startTime, setStartTime] = useState('08:00');
@@ -36,10 +36,12 @@ const Settings = () => {
   const app = Taro.getApp();
 
   useDidShow(() => {
+    console.log('Settings Page: useDidShow triggered');
     fetchSettings();
   });
 
   const fetchSettings = () => {
+    console.log('Settings Page: fetchSettings called');
     Taro.showLoading({ title: '加载中...' });
 
     getSettings()

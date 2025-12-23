@@ -7,7 +7,12 @@ const SERVICE_NAME = 'golang-o5p0'; // 替换为你的服务名称
 const request = (url, method = 'GET', data = {}) => {
   return new Promise((resolve, reject) => {
     // 判断是否使用云托管 (生产环境)
-    if (process.env.USE_CLOUD_CONTAINER === 'true') {
+    const useCloud = process.env.USE_CLOUD_CONTAINER === 'true';
+    console.log(
+      `[API] Request: ${url}, Method: ${method}, USE_CLOUD_CONTAINER: ${process.env.USE_CLOUD_CONTAINER}`
+    );
+
+    if (useCloud) {
       // 使用微信云托管调用
       Taro.cloud.callContainer({
         config: {

@@ -38,7 +38,7 @@ class App extends Component {
       // 加载设置
       const settings = Taro.getStorageSync('settings');
       if (settings) {
-        this.globalData.dailyGoal = settings.dailyGoal || 1600;
+        this.globalData.dailyGoal = settings.dailyGoal || 2000;
         this.globalData.reminderSettings =
           settings.reminderSettings || this.globalData.reminderSettings;
         // 加载快速添加设置
@@ -63,7 +63,7 @@ class App extends Component {
 
   // 模拟 globalData
   globalData = {
-    dailyGoal: 1600,
+    dailyGoal: 2000,
     todayDrink: 0,
     drinkRecords: [],
     quickAmounts: [200, 300, 500, 800],

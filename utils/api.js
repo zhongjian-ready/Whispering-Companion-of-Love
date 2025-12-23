@@ -25,7 +25,7 @@ const request = (url, method = 'GET', data = {}) => {
   });
 };
 
-const getSettings = (userId = 7) => {
+const getSettings = (userId = 1) => {
   return request('/settings', 'GET', { user_id: userId });
 };
 

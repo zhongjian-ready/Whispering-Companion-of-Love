@@ -4,7 +4,7 @@
   "description": "Water Reminder App with Taro and NutUI",
   "appid": "wx4020bd850b61f7b2",
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "es6": false,
     "enhance": false,
     "postcss": false,

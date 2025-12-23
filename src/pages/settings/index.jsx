@@ -112,6 +112,7 @@ const Settings = () => {
           setShowToast(true);
         }
 
+        console.log('Falling back to local settings');
         loadLocalSettings();
       });
   };

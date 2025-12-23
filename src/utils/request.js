@@ -7,12 +7,21 @@ const SERVICE_NAME = 'golang-o5p0'; // 替换为你的服务名称
 const request = (url, method = 'GET', data = {}) => {
   return new Promise((resolve, reject) => {
     // 判断是否使用云托管 (生产环境)
-    const useCloud = process.env.USE_CLOUD_CONTAINER === 'true';
+    // 兼容字符串 'true' 和布尔值 true
+    const envVal = process.env.USE_CLOUD_CONTAINER;
+    const useCloud = envVal === 'true' || envVal === true;
+
     console.log(
-      `[API] Request: ${url}, Method: ${method}, USE_CLOUD_CONTAINER: ${process.env.USE_CLOUD_CONTAINER}`
+      `[API] Request: ${url}, Method: ${method}, USE_CLOUD_CONTAINER: ${envVal}, useCloud: ${useCloud}`
     );
 
     if (useCloud) {
+      if (!Taro.cloud) {
+        console.error('[API] Taro.cloud is not available');
+        reject(new Error('Taro.cloud is not available'));
+        return;
+      }
+      console.log('[API] Calling Taro.cloud.callContainer');
       // 使用微信云托管调用
       Taro.cloud.callContainer({
         config: {
@@ -37,6 +46,7 @@ const request = (url, method = 'GET', data = {}) => {
         },
       });
     } else {
+      console.log('[API] Calling Taro.request (Local)');
       // 本地开发环境，使用普通 HTTP 请求
       // 注意：需要在微信开发者工具中勾选 "不校验合法域名、web-view（业务域名）、TLS版本以及HTTPS证书"
       const baseUrl = process.env.LOCAL_API_HOST || 'http://127.0.0.1:8080';

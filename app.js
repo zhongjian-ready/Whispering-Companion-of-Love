@@ -1,6 +1,6 @@
 App({
   globalData: {
-    dailyGoal: 1400, // 每日饮水目标(毫升)
+    dailyGoal: 2000, // 每日饮水目标(毫升)
     todayDrink: 0, // 今日已喝水量
     drinkRecords: [], // 喝水记录
     reminderSettings: {
@@ -52,7 +52,7 @@ App({
       // 加载设置
       const settings = wx.getStorageSync('settings');
       if (settings) {
-        this.globalData.dailyGoal = settings.dailyGoal || 1400;
+        this.globalData.dailyGoal = settings.dailyGoal || 2000;
         this.globalData.reminderSettings =
           settings.reminderSettings || this.globalData.reminderSettings;
       }
@@ -61,7 +61,7 @@ App({
       // 使用默认值
       this.globalData.todayDrink = 0;
       this.globalData.drinkRecords = [];
-      this.globalData.dailyGoal = 1400;
+      this.globalData.dailyGoal = 2000;
     }
   },
 

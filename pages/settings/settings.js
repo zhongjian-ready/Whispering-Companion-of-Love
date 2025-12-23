@@ -3,7 +3,7 @@ const { getSettings } = require('../../utils/api');
 
 Page({
   data: {
-    dailyGoal: 1400,
+    dailyGoal: 2000,
     reminderEnabled: true,
     reminderInterval: 60,
     startTime: '08:00',

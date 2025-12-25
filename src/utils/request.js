@@ -1,6 +1,23 @@
 import Taro from '@tarojs/taro';
 
-// 微信云托管配置
+// ============================================================================
+// 接口请求配置
+// ============================================================================
+
+// 1. 后端模式选择
+// 'cloud': 使用微信云托管 (WeChat Cloud Container)
+// 'http':  使用普通 HTTP/HTTPS 服务器
+const BACKEND_MODE = 'cloud'; // <--- 已切换为 'cloud' 模式
+
+// 2. 普通 HTTP 服务器配置 (当 BACKEND_MODE === 'http' 时生效)
+// 开发环境 (IDE / npm run dev:weapp)
+const DEV_HOST = process.env.LOCAL_API_HOST || 'http://127.0.0.1:8080';
+// 生产环境 (体验版 / 正式版)
+// 注意：正式上线必须是 HTTPS 且在微信后台配置了合法域名
+// 如果是真机调试本地服务，填局域网IP (如 http://192.168.x.x:8080) 并打开手机"调试模式"
+const PROD_HOST = 'https://your-production-domain.com';
+
+// 3. 微信云托管配置 (当 BACKEND_MODE === 'cloud' 时生效)
 const CLOUD_ENV_ID = 'prod-7gbcggfq2dae4403'; // 替换为你的云托管环境ID
 const SERVICE_NAME = 'golang-o5p0'; // 替换为你的服务名称
 
@@ -12,17 +29,11 @@ const request = (url, method = 'GET', data = {}) => {
       ? accountInfo.miniProgram.envVersion
       : 'develop';
 
-    let useCloud = false;
+    let useCloud = BACKEND_MODE === 'cloud';
 
-    if (envVersion === 'trial' || envVersion === 'release') {
-      // 策略1：体验版和正式版 -> 强制使用云托管
+    // 兼容之前的环境变量逻辑
+    if (process.env.USE_CLOUD_CONTAINER === 'true') {
       useCloud = true;
-    } else {
-      // 策略2：开发版 (IDE) -> 根据构建命令的配置决定
-      // npm run dev:weapp -> USE_CLOUD_CONTAINER="false" -> 使用本地服务
-      // npm run build:weapp -> USE_CLOUD_CONTAINER="true" -> 使用云托管 (方便在IDE测试云服务)
-      const envVal = process.env.USE_CLOUD_CONTAINER;
-      useCloud = envVal === 'true' || envVal === true;
     }
 
     console.log(`[API] ${url} | Env:${envVersion} | Cloud:${useCloud}`);
@@ -58,13 +69,16 @@ const request = (url, method = 'GET', data = {}) => {
         },
       });
     } else {
-      console.log('[API] Calling Taro.request (Local)');
-      // 本地开发环境，使用普通 HTTP 请求
-      // 注意：需要在微信开发者工具中勾选 "不校验合法域名、web-view（业务域名）、TLS版本以及HTTPS证书"
-      const baseUrl = process.env.LOCAL_API_HOST || 'http://127.0.0.1:8080';
+      console.log('[API] Calling Taro.request (HTTP)');
+
+      let baseUrl = DEV_HOST;
+      if (envVersion === 'trial' || envVersion === 'release') {
+        baseUrl = PROD_HOST;
+      }
+
       const fullUrl = `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
 
-      console.log(`[Local Request] ${method} ${fullUrl}`, data);
+      console.log(`[HTTP Request] ${method} ${fullUrl}`, data);
 
       Taro.request({
         url: fullUrl,

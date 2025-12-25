@@ -1,6 +1,6 @@
 import request from '../utils/request';
 
-export const getSettings = (userId = 1) => {
+export const getSettings = userId => {
   return request('/settings', 'GET', { user_id: userId });
 };
 

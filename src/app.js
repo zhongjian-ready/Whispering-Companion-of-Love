@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro';
 import { Component } from 'react';
+import { getUserInfo } from './api/user';
 import './app.css';
 
 class App extends Component {
@@ -14,12 +15,46 @@ class App extends Component {
         });
       }
     }
+    this.checkLogin();
     this.initData();
   }
 
   componentDidShow() {}
 
   componentDidHide() {}
+
+  async checkLogin() {
+    try {
+      const userId = Taro.getStorageSync('userId');
+      const openid = Taro.getStorageSync('openid');
+
+      // 如果有登录信息，验证是否有效
+      if (userId && openid) {
+        try {
+          // 尝试获取用户信息，验证 userId 是否在数据库中存在
+          await getUserInfo(userId);
+
+          // 验证成功，保存到全局数据并跳转
+          this.globalData.userId = userId;
+          this.globalData.openid = openid;
+
+          setTimeout(() => {
+            Taro.reLaunch({
+              url: '/pages/index/index',
+            });
+          }, 100);
+        } catch (err) {
+          console.error('用户验证失败，可能已被删除:', err);
+          // 验证失败（如用户不存在），清除本地缓存，停留在登录页
+          Taro.removeStorageSync('userId');
+          Taro.removeStorageSync('openid');
+          // 不需要跳转，因为默认就在登录页
+        }
+      }
+    } catch (error) {
+      console.error('检查登录状态失败:', error);
+    }
+  }
 
   initData() {
     try {
@@ -63,6 +98,8 @@ class App extends Component {
 
   // 模拟 globalData
   globalData = {
+    userId: null,
+    openid: null,
     dailyGoal: 2000,
     todayDrink: 0,
     drinkRecords: [],

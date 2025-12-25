@@ -1,11 +1,13 @@
 import { Button, Switch, Toast } from '@nutui/nutui-react-taro';
-import { Picker, View } from '@tarojs/components';
+import { Image, Picker, View } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import { useState } from 'react';
 import { getSettings, updateSettings } from '../../api/settings';
+import { getUserInfo } from '../../api/user';
 import './index.css';
 
 const Settings = () => {
+  const [userInfo, setUserInfo] = useState({});
   const [dailyGoal, setDailyGoal] = useState(2000);
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [reminderInterval, setReminderInterval] = useState(60);
@@ -37,14 +39,36 @@ const Settings = () => {
 
   useDidShow(() => {
     console.log('Settings Page: useDidShow triggered');
+    fetchUserInfo();
     fetchSettings();
   });
 
+  const fetchUserInfo = () => {
+    const userId = Taro.getStorageSync('userId');
+    if (userId) {
+      getUserInfo(userId)
+        .then(res => {
+          console.log('Fetched user info:', res);
+          const data = (res && res.data) || res || {};
+          setUserInfo(data);
+        })
+        .catch(err => {
+          console.error('获取用户信息失败:', err);
+        });
+    }
+  };
+
   const fetchSettings = () => {
     console.log('Settings Page: fetchSettings called');
+    const userId = Taro.getStorageSync('userId');
+    if (!userId) {
+      console.log('No userId found, skipping fetchSettings');
+      return;
+    }
+
     Taro.showLoading({ title: '加载中...' });
 
-    getSettings()
+    getSettings(userId)
       .then(res => {
         console.log('Fetched settings:', res);
 
@@ -144,11 +168,26 @@ const Settings = () => {
     saveSettings({ dailyGoal: newGoal });
   };
 
-  const toggleReminder = value => {
+  const toggleReminder = (value, event) => {
+    // NutUI Switch 组件 onChange 回调参数：(value, event)
+    // value 是布尔值
+    console.log('Toggle reminder:', value);
     setReminderEnabled(value);
+
+    // 确保 app.globalData 存在
+    if (!app.globalData) app.globalData = {};
+
+    // 确保 app.globalData.reminderSettings 存在
+    const currentSettings = app.globalData.reminderSettings || {
+      enabled: true,
+      interval: 60,
+      startTime: '08:00',
+      endTime: '22:00',
+    };
+
     saveSettings({
       reminderSettings: {
-        ...app.globalData.reminderSettings,
+        ...currentSettings,
         enabled: value,
       },
     });
@@ -159,9 +198,18 @@ const Settings = () => {
     const interval = intervalOptions[idx].value;
     setIntervalIndex(idx);
     setReminderInterval(interval);
+
+    if (!app.globalData) app.globalData = {};
+    const currentSettings = app.globalData.reminderSettings || {
+      enabled: true,
+      interval: 60,
+      startTime: '08:00',
+      endTime: '22:00',
+    };
+
     saveSettings({
       reminderSettings: {
-        ...app.globalData.reminderSettings,
+        ...currentSettings,
         interval: interval,
       },
     });
@@ -170,9 +218,18 @@ const Settings = () => {
   const onStartTimeChange = e => {
     const time = e.detail.value;
     setStartTime(time);
+
+    if (!app.globalData) app.globalData = {};
+    const currentSettings = app.globalData.reminderSettings || {
+      enabled: true,
+      interval: 60,
+      startTime: '08:00',
+      endTime: '22:00',
+    };
+
     saveSettings({
       reminderSettings: {
-        ...app.globalData.reminderSettings,
+        ...currentSettings,
         startTime: time,
       },
     });
@@ -181,15 +238,35 @@ const Settings = () => {
   const onEndTimeChange = e => {
     const time = e.detail.value;
     setEndTime(time);
+
+    if (!app.globalData) app.globalData = {};
+    const currentSettings = app.globalData.reminderSettings || {
+      enabled: true,
+      interval: 60,
+      startTime: '08:00',
+      endTime: '22:00',
+    };
+
     saveSettings({
       reminderSettings: {
-        ...app.globalData.reminderSettings,
+        ...currentSettings,
         endTime: time,
       },
     });
   };
 
   const saveSettings = newSettings => {
+    // 确保 globalData 及其子属性存在
+    if (!app.globalData) app.globalData = {};
+    if (!app.globalData.reminderSettings) {
+      app.globalData.reminderSettings = {
+        enabled: true,
+        interval: 60,
+        startTime: '08:00',
+        endTime: '22:00',
+      };
+    }
+
     // 更新全局数据
     if (newSettings.dailyGoal) {
       app.globalData.dailyGoal = newSettings.dailyGoal;
@@ -212,22 +289,48 @@ const Settings = () => {
     });
 
     // 同步到云端
-    const cloudSettings = {
-      daily_goal: app.globalData.dailyGoal,
-      reminder_enabled: app.globalData.reminderSettings.enabled,
-      reminder_interval: app.globalData.reminderSettings.interval,
-      reminder_start_time: app.globalData.reminderSettings.startTime,
-      reminder_end_time: app.globalData.reminderSettings.endTime,
-      quick_add_presets: app.globalData.quickAmounts,
-    };
+    const userId = Taro.getStorageSync('userId');
+    if (userId) {
+      const cloudSettings = {
+        user_id: userId,
+        daily_goal: app.globalData.dailyGoal,
+        reminder_enabled: app.globalData.reminderSettings.enabled,
+        reminder_interval: app.globalData.reminderSettings.interval,
+        reminder_start_time: app.globalData.reminderSettings.startTime,
+        reminder_end_time: app.globalData.reminderSettings.endTime,
+        quick_add_presets: app.globalData.quickAmounts,
+      };
 
-    updateSettings(cloudSettings).catch(err => {
-      console.error('同步设置失败:', err);
-    });
+      console.log('正在保存设置到云端:', cloudSettings);
+      updateSettings(cloudSettings)
+        .then(() => {
+          console.log('设置保存成功');
+        })
+        .catch(err => {
+          console.error('同步设置失败:', err);
+          Taro.showToast({ title: '设置保存失败', icon: 'none' });
+        });
+    }
   };
 
   return (
     <View className="container">
+      {/* 用户信息卡片 */}
+      <View className="card user-card">
+        <Image
+          className="user-avatar"
+          src={
+            userInfo.avatar_url ||
+            'https://img12.360buyimg.com/imagetools/jfs/t1/196430/38/8105/14329/60c806a4Ed506298a/e6de9fb7b8490f38.png'
+          }
+          mode="aspectFill"
+        />
+        <View className="user-info">
+          <View className="user-nickname">{userInfo.nickname || '未登录'}</View>
+          <View className="user-id">ID: {userInfo.user_id || '-'}</View>
+        </View>
+      </View>
+
       {/* 每日目标设置 */}
       <View className="card">
         <View className="title">每日饮水目标</View>
@@ -381,12 +484,13 @@ const Settings = () => {
                 content: '此操作将删除所有饮水记录，且无法恢复。确定要继续吗？',
                 success: res => {
                   if (res.confirm) {
+                    if (!app.globalData) app.globalData = {};
                     app.globalData.todayDrink = 0;
                     app.globalData.drinkRecords = [];
                     Taro.removeStorageSync('waterData');
                     Taro.removeStorageSync('waterHistory');
                     Taro.showToast({ title: '数据已清空', icon: 'success' });
-                    setDailyGoal(2000); // Reset goal or keep it? Screenshot doesn't say.
+                    setDailyGoal(2000);
                   }
                 },
               });

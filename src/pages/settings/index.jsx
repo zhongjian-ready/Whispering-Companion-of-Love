@@ -168,16 +168,10 @@ const Settings = () => {
     saveSettings({ dailyGoal: newGoal });
   };
 
-  const toggleReminder = (value, event) => {
-    // NutUI Switch 组件 onChange 回调参数：(value, event)
-    // value 是布尔值
-    console.log('Toggle reminder:', value);
-    setReminderEnabled(value);
+  const updateReminderStatus = status => {
+    setReminderEnabled(status);
 
-    // 确保 app.globalData 存在
     if (!app.globalData) app.globalData = {};
-
-    // 确保 app.globalData.reminderSettings 存在
     const currentSettings = app.globalData.reminderSettings || {
       enabled: true,
       interval: 60,
@@ -188,7 +182,39 @@ const Settings = () => {
     saveSettings({
       reminderSettings: {
         ...currentSettings,
-        enabled: value,
+        enabled: status,
+      },
+    });
+  };
+
+  const toggleReminder = (value, event) => {
+    console.log('Toggle reminder:', value);
+
+    // 1. 如果是关闭提醒，直接执行
+    if (!value) {
+      updateReminderStatus(false);
+      return;
+    }
+
+    // 2. 如果是开启提醒，请求订阅消息权限
+    const TEMPLATE_ID = 'sVMOe5foqgzI9BjHcDxgemaPI6Qd-kalfZAfrkHrdqg';
+
+    Taro.requestSubscribeMessage({
+      tmplIds: [TEMPLATE_ID],
+      success: res => {
+        console.log('Subscribe result:', res);
+        if (res[TEMPLATE_ID] === 'accept') {
+          Taro.showToast({ title: '订阅成功', icon: 'success' });
+        } else if (res[TEMPLATE_ID] === 'reject') {
+          Taro.showToast({ title: '您取消了订阅', icon: 'none' });
+        }
+        // 无论同意还是拒绝，都开启应用内开关
+        updateReminderStatus(true);
+      },
+      fail: err => {
+        console.error('订阅请求失败:', err);
+        // 即使失败（如开发工具不支持），也允许开启开关
+        updateReminderStatus(true);
       },
     });
   };

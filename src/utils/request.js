@@ -5,11 +5,12 @@ import Taro from '@tarojs/taro';
 // ============================================================================
 
 // 1. 后端模式选择
-// 'cloud': 使用微信云托管 (WeChat Cloud Container)
-// 'http':  使用普通 HTTP/HTTPS 服务器
-const BACKEND_MODE = 'cloud'; // <--- 已切换为 'cloud' 模式
+// 'cloud': 强制使用微信云托管 (所有环境)
+// 'http':  强制使用普通 HTTP (所有环境)
+// 'auto':  自动切换 (开发版用HTTP，体验版/正式版用Cloud)
+const BACKEND_MODE = 'auto'; // <--- 推荐设置为 'auto'
 
-// 2. 普通 HTTP 服务器配置 (当 BACKEND_MODE === 'http' 时生效)
+// 2. 普通 HTTP 服务器配置 (当使用 HTTP 模式时生效)
 // 开发环境 (IDE / npm run dev:weapp)
 const DEV_HOST = process.env.LOCAL_API_HOST || 'http://127.0.0.1:8080';
 // 生产环境 (体验版 / 正式版)
@@ -29,7 +30,20 @@ const request = (url, method = 'GET', data = {}) => {
       ? accountInfo.miniProgram.envVersion
       : 'develop';
 
-    let useCloud = BACKEND_MODE === 'cloud';
+    let useCloud = false;
+
+    if (BACKEND_MODE === 'cloud') {
+      useCloud = true;
+    } else if (BACKEND_MODE === 'http') {
+      useCloud = false;
+    } else {
+      // auto 模式
+      if (envVersion === 'trial' || envVersion === 'release') {
+        useCloud = true;
+      } else {
+        useCloud = false;
+      }
+    }
 
     // 兼容之前的环境变量逻辑
     if (process.env.USE_CLOUD_CONTAINER === 'true') {

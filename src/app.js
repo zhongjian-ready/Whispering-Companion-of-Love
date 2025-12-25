@@ -28,6 +28,11 @@ class App extends Component {
       const userId = Taro.getStorageSync('userId');
       const openid = Taro.getStorageSync('openid');
 
+      // 获取启动参数，判断当前页面
+      const launchOptions = Taro.getLaunchOptionsSync();
+      const currentPath = launchOptions.path;
+      const isLoginPage = currentPath.includes('pages/login/index');
+
       // 如果有登录信息，验证是否有效
       if (userId && openid) {
         try {
@@ -38,17 +43,34 @@ class App extends Component {
           this.globalData.userId = userId;
           this.globalData.openid = openid;
 
-          setTimeout(() => {
-            Taro.reLaunch({
-              url: '/pages/index/index',
-            });
-          }, 100);
+          // 如果当前在登录页，才跳转到首页；如果已经在其他页（如通过分享进入），则保持
+          if (isLoginPage) {
+            setTimeout(() => {
+              Taro.reLaunch({
+                url: '/pages/index/index',
+              });
+            }, 100);
+          }
         } catch (err) {
           console.error('用户验证失败，可能已被删除:', err);
-          // 验证失败（如用户不存在），清除本地缓存，停留在登录页
+          // 验证失败（如用户不存在），清除本地缓存
           Taro.removeStorageSync('userId');
           Taro.removeStorageSync('openid');
-          // 不需要跳转，因为默认就在登录页
+
+          // 如果不在登录页，强制跳转回登录页
+          if (!isLoginPage) {
+            Taro.reLaunch({
+              url: '/pages/login/index',
+            });
+          }
+        }
+      } else {
+        // 没有登录信息
+        // 如果不在登录页，强制跳转回登录页
+        if (!isLoginPage) {
+          Taro.reLaunch({
+            url: '/pages/login/index',
+          });
         }
       }
     } catch (error) {

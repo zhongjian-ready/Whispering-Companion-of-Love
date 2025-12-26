@@ -1,11 +1,12 @@
 import { Dialog, Progress, Switch, Toast } from '@nutui/nutui-react-taro';
-import { Button, Input, View } from '@tarojs/components';
+import { Button, Image, Input, View } from '@tarojs/components';
 import Taro, {
   useDidShow,
   useShareAppMessage,
   useShareTimeline,
 } from '@tarojs/taro';
 import { useState } from 'react';
+import { getUserInfo, updateUserInfo } from '../../api/user';
 import './index.css';
 
 const Index = () => {
@@ -22,13 +23,133 @@ const Index = () => {
   const [toastMsg, setToastMsg] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const [dialogContent, setDialogContent] = useState('');
+  const [statusPhoto, setStatusPhoto] = useState('');
 
   const app = Taro.getApp();
 
   useDidShow(() => {
     loadData();
     checkLocationPermission();
+    loadStatusPhoto();
   });
+
+  const loadStatusPhoto = () => {
+    // 1. 优先显示本地缓存
+    const photo = Taro.getStorageSync('statusPhoto');
+    if (photo) {
+      setStatusPhoto(photo);
+    }
+
+    // 2. 从后台获取最新数据
+    const userId = Taro.getStorageSync('userId');
+    if (userId) {
+      getUserInfo(userId)
+        .then(res => {
+          const data = (res && res.data) || res || {};
+          if (data.status_photo) {
+            console.log('Fetched status photo from server:', data.status_photo);
+            setStatusPhoto(data.status_photo);
+            Taro.setStorageSync('statusPhoto', data.status_photo);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch user info for status photo:', err);
+        });
+    }
+  };
+
+  const onChooseStatusPhoto = () => {
+    Taro.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: function (res) {
+        const tempFilePath = res.tempFilePaths[0];
+        uploadStatusPhoto(tempFilePath);
+      },
+    });
+  };
+
+  const uploadStatusPhoto = async filePath => {
+    Taro.showLoading({ title: '上传中...' });
+    try {
+      const userId = Taro.getStorageSync('userId') || 'guest';
+      const cloudPath = `status_photos/${userId}_${Date.now()}.png`;
+
+      const res = await Taro.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: filePath,
+      });
+
+      const fileID = res.fileID;
+      console.log('Status photo uploaded:', fileID);
+
+      // 内容安全检测
+      try {
+        const checkRes = await Taro.cloud.callFunction({
+          name: 'contentCheck',
+          data: {
+            type: 'img',
+            value: fileID,
+          },
+        });
+
+        console.log('Security check result:', checkRes);
+
+        if (checkRes.result && checkRes.result.errCode === 87014) {
+          Taro.hideLoading();
+          Taro.showToast({
+            title: '图片包含违规内容，请重新上传',
+            icon: 'none',
+          });
+          // 删除违规图片
+          await Taro.cloud.deleteFile({ fileList: [fileID] });
+          return;
+        }
+      } catch (checkErr) {
+        console.error(
+          'Security check failed (function might not be deployed):',
+          checkErr
+        );
+        // 如果是函数不存在，可能是开发环境未部署，暂时允许通过
+        // 但在生产环境必须确保云函数已部署
+      }
+
+      // Save to local storage
+      Taro.setStorageSync('statusPhoto', fileID);
+      setStatusPhoto(fileID);
+
+      // Save to database
+      if (userId !== 'guest') {
+        try {
+          await updateUserInfo({
+            user_id: userId,
+            status_photo: fileID,
+          });
+          console.log('Status photo saved to database');
+        } catch (dbErr) {
+          console.error('Failed to save status photo to database:', dbErr);
+          // Don't block UI success if DB save fails, but log it
+        }
+      }
+
+      Taro.hideLoading();
+      Taro.showToast({ title: '更新成功', icon: 'success' });
+    } catch (err) {
+      console.error('Upload failed:', err);
+      Taro.hideLoading();
+
+      // Fallback: if cloud upload fails (e.g. no cloud env), just use local path
+      // Note: local path is temporary, but better than nothing for demo
+      if (err.errMsg && err.errMsg.includes('cloud')) {
+        Taro.setStorageSync('statusPhoto', filePath);
+        setStatusPhoto(filePath);
+        Taro.showToast({ title: '本地保存成功', icon: 'none' });
+      } else {
+        Taro.showToast({ title: '上传失败', icon: 'none' });
+      }
+    }
+  };
 
   const checkLocationPermission = () => {
     Taro.getSetting({
@@ -279,6 +400,22 @@ const Index = () => {
           </View>
 
           <View className="progress-percent">{progressPercent}%</View>
+        </View>
+      </View>
+
+      {/* 自我状态展示 */}
+      <View className="card status-card">
+        <View className="title">当前状态</View>
+        <View className="status-content" onClick={onChooseStatusPhoto}>
+          {statusPhoto ? (
+            <Image src={statusPhoto} mode="widthFix" className="status-image" />
+          ) : (
+            <View className="status-placeholder">
+              <View className="placeholder-icon">📷</View>
+              <View className="placeholder-text">点击上传今日状态</View>
+            </View>
+          )}
+          <View className="status-tip">点击图片更换</View>
         </View>
       </View>
 

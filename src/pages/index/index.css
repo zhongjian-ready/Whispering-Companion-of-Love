@@ -186,3 +186,48 @@
   color: #f57c00;
   font-weight: 500;
 }
+
+/* 状态卡片 */
+.status-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.status-image {
+  width: 100%;
+  /* height: 200px; Removed fixed height to allow widthFix to work */
+  border-radius: 12px;
+  background-color: #f0f0f0;
+}
+
+.status-placeholder {
+  width: 100%;
+  height: 150px;
+  background-color: #f5f7fa;
+  border-radius: 12px;
+  border: 2px dashed #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.placeholder-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.placeholder-text {
+  font-size: 14px;
+}
+
+.status-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
+}

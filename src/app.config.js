@@ -1,5 +1,10 @@
 export default defineAppConfig({
-  pages: ['pages/index/index', 'pages/history/index', 'pages/settings/index'],
+  pages: [
+    'pages/index/index',
+    'pages/history/index',
+    'pages/settings/index',
+    'pages/vip/index',
+  ],
   requiredPrivateInfos: ['getLocation', 'chooseLocation'],
   permission: {
     'scope.userLocation': {

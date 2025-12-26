@@ -650,6 +650,25 @@ const Settings = () => {
         </View>
       </View>
 
+      {/* 会员中心入口 */}
+      <View
+        className="card"
+        onClick={() => Taro.navigateTo({ url: '/pages/vip/index' })}
+      >
+        <View className="setting-item" style={{ borderBottom: 'none' }}>
+          <View className="setting-label">
+            <View
+              className="label-text"
+              style={{ color: '#d4af37', fontWeight: 'bold' }}
+            >
+              👑 会员中心
+            </View>
+            <View className="label-desc">开通会员，解锁更多功能</View>
+          </View>
+          <View style={{ color: '#999' }}>{'>'}</View>
+        </View>
+      </View>
+
       <View className="card">
         <View className="title">提醒设置</View>
 

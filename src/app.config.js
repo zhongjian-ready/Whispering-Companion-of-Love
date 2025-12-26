@@ -1,10 +1,11 @@
 export default defineAppConfig({
-  pages: [
-    'pages/login/index',
-    'pages/index/index',
-    'pages/history/index',
-    'pages/settings/index',
-  ],
+  pages: ['pages/index/index', 'pages/history/index', 'pages/settings/index'],
+  requiredPrivateInfos: ['getLocation', 'chooseLocation'],
+  permission: {
+    'scope.userLocation': {
+      desc: '我们需要您的位置信息以提供更好的服务',
+    },
+  },
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#fff',

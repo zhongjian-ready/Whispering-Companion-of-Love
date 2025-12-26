@@ -4,6 +4,24 @@ import { getUserInfo } from './api/user';
 import './app.css';
 
 class App extends Component {
+  // 初始化全局数据
+  globalData = {
+    userInfo: null,
+    userId: null,
+    openid: null,
+    todayDrink: 0,
+    dailyGoal: 2000,
+    drinkRecords: [],
+    reminderSettings: {
+      enabled: true,
+      interval: 60,
+      startTime: '08:00',
+      endTime: '22:00',
+    },
+    quickAmounts: [200, 300, 500, 800],
+    userLocation: null,
+  };
+
   componentDidMount() {
     if (process.env.TARO_ENV === 'weapp') {
       if (!Taro.cloud) {
@@ -28,49 +46,20 @@ class App extends Component {
       const userId = Taro.getStorageSync('userId');
       const openid = Taro.getStorageSync('openid');
 
-      // 获取启动参数，判断当前页面
-      const launchOptions = Taro.getLaunchOptionsSync();
-      const currentPath = launchOptions.path;
-      const isLoginPage = currentPath.includes('pages/login/index');
-
       // 如果有登录信息，验证是否有效
       if (userId && openid) {
         try {
           // 尝试获取用户信息，验证 userId 是否在数据库中存在
           await getUserInfo(userId);
 
-          // 验证成功，保存到全局数据并跳转
+          // 验证成功，保存到全局数据
           this.globalData.userId = userId;
           this.globalData.openid = openid;
-
-          // 如果当前在登录页，才跳转到首页；如果已经在其他页（如通过分享进入），则保持
-          if (isLoginPage) {
-            setTimeout(() => {
-              Taro.reLaunch({
-                url: '/pages/index/index',
-              });
-            }, 100);
-          }
         } catch (err) {
           console.error('用户验证失败，可能已被删除:', err);
           // 验证失败（如用户不存在），清除本地缓存
           Taro.removeStorageSync('userId');
           Taro.removeStorageSync('openid');
-
-          // 如果不在登录页，强制跳转回登录页
-          if (!isLoginPage) {
-            Taro.reLaunch({
-              url: '/pages/login/index',
-            });
-          }
-        }
-      } else {
-        // 没有登录信息
-        // 如果不在登录页，强制跳转回登录页
-        if (!isLoginPage) {
-          Taro.reLaunch({
-            url: '/pages/login/index',
-          });
         }
       }
     } catch (error) {
@@ -117,22 +106,6 @@ class App extends Component {
     const day = date.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
-
-  // 模拟 globalData
-  globalData = {
-    userId: null,
-    openid: null,
-    dailyGoal: 2000,
-    todayDrink: 0,
-    drinkRecords: [],
-    quickAmounts: [200, 300, 500, 800],
-    reminderSettings: {
-      enabled: true,
-      interval: 60,
-      startTime: '08:00',
-      endTime: '22:00',
-    },
-  };
 
   render() {
     return this.props.children;

@@ -5,8 +5,9 @@ export const login = code => {
   return request('/user/login', 'POST', { code });
 };
 
-// 更新用户信息（昵称、头像）
+// 更新用户信息（昵称、头像、手机号code）
 export const updateUserInfo = userInfo => {
+  // userInfo 包含: user_id, nickname, avatar_url, phone_code (可选)
   return request('/user/info', 'POST', userInfo);
 };
 

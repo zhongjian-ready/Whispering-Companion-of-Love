@@ -25,7 +25,10 @@ const History = () => {
   const initData = () => {
     const today = formatDate(new Date());
     setSelectedDate(today);
-    setDailyGoal(app.globalData.dailyGoal);
+
+    const globalData = app.globalData || {};
+    setDailyGoal(globalData.dailyGoal || 2000);
+
     loadData(today);
   };
 
@@ -37,10 +40,14 @@ const History = () => {
   };
 
   const loadTodayData = () => {
-    setTodayDrink(app.globalData.todayDrink);
+    const globalData = app.globalData || {};
+    setTodayDrink(globalData.todayDrink || 0);
   };
 
   const loadStatistics = () => {
+    const globalData = app.globalData || {};
+    const currentDailyGoal = globalData.dailyGoal || 2000;
+
     const allHistory = getAllHistory();
     const weekHistory = getWeekHistory();
 
@@ -53,7 +60,7 @@ const History = () => {
     setTotalDays(days);
 
     const completedDays = allHistory.filter(
-      day => day.total >= app.globalData.dailyGoal
+      day => day.total >= currentDailyGoal
     ).length;
     const rate =
       allHistory.length > 0
@@ -63,12 +70,12 @@ const History = () => {
   };
 
   const loadSelectedDayData = dateStr => {
+    const globalData = app.globalData || {};
+    const currentDailyGoal = globalData.dailyGoal || 2000;
+
     const dayData = getDayData(dateStr);
     const total = dayData.total;
-    const percent = Math.min(
-      Math.round((total / app.globalData.dailyGoal) * 100),
-      100
-    );
+    const percent = Math.min(Math.round((total / currentDailyGoal) * 100), 100);
 
     setSelectedDayTotal(total);
     setSelectedDayPercent(percent);
@@ -76,10 +83,13 @@ const History = () => {
   };
 
   const loadWeeklyData = () => {
+    const globalData = app.globalData || {};
+    const currentDailyGoal = globalData.dailyGoal || 2000;
+
     const weekHistory = getWeekHistory();
     const maxAmount = Math.max(
       ...weekHistory.map(day => day.total),
-      app.globalData.dailyGoal
+      currentDailyGoal
     );
 
     const data = weekHistory.map(day => ({
@@ -116,16 +126,20 @@ const History = () => {
       // 加上今天的数据（如果今天还没存入 storage 的话）
       const today = formatDate(new Date());
       const todayInHistory = history.find(h => h.date === today);
+      const globalData = app.globalData || {};
+      const currentTodayDrink = globalData.todayDrink || 0;
+      const currentDrinkRecords = globalData.drinkRecords || [];
+
       if (!todayInHistory) {
         history.push({
           date: today,
-          total: app.globalData.todayDrink,
-          records: app.globalData.drinkRecords,
+          total: currentTodayDrink,
+          records: currentDrinkRecords,
         });
       } else {
         // 如果今天已经在 history 里（比如刚过零点），确保数据是最新的
-        todayInHistory.total = app.globalData.todayDrink;
-        todayInHistory.records = app.globalData.drinkRecords;
+        todayInHistory.total = currentTodayDrink;
+        todayInHistory.records = currentDrinkRecords;
       }
 
       return history;
@@ -149,10 +163,11 @@ const History = () => {
   const getDayData = dateStr => {
     const today = formatDate(new Date());
     if (dateStr === today) {
+      const globalData = app.globalData || {};
       return {
         date: dateStr,
-        total: app.globalData.todayDrink,
-        records: app.globalData.drinkRecords,
+        total: globalData.todayDrink || 0,
+        records: globalData.drinkRecords || [],
       };
     }
     const key = `water_${dateStr}`;

@@ -27,24 +27,71 @@ const Index = () => {
 
   useDidShow(() => {
     loadData();
+    checkLocationPermission();
   });
 
-  const loadData = () => {
-    const globalData = app.globalData;
-    const percent = Math.min(
-      Math.round((globalData.todayDrink / globalData.dailyGoal) * 100),
-      100
-    );
+  const checkLocationPermission = () => {
+    Taro.getSetting({
+      success: res => {
+        if (!res.authSetting['scope.userLocation']) {
+          Taro.authorize({
+            scope: 'scope.userLocation',
+            success() {
+              getLocation();
+            },
+            fail() {
+              console.log('用户拒绝了位置授权');
+            },
+          });
+        } else {
+          getLocation();
+        }
+      },
+    });
+  };
 
-    setTodayDrink(globalData.todayDrink);
-    setDailyGoal(globalData.dailyGoal);
+  const getLocation = () => {
+    Taro.getLocation({
+      type: 'wgs84',
+      success: function (res) {
+        const location = {
+          latitude: res.latitude,
+          longitude: res.longitude,
+        };
+        Taro.setStorageSync('userLocation', location);
+
+        // 确保 globalData 存在
+        if (app) {
+          if (!app.globalData) {
+            app.globalData = {};
+          }
+          app.globalData.userLocation = location;
+        }
+      },
+    });
+  };
+
+  const loadData = () => {
+    const globalData = app.globalData || {};
+    const todayDrink = globalData.todayDrink || 0;
+    const dailyGoal = globalData.dailyGoal || 2000;
+
+    const percent = Math.min(Math.round((todayDrink / dailyGoal) * 100), 100);
+
+    setTodayDrink(todayDrink);
+    setDailyGoal(dailyGoal);
     if (globalData.quickAmounts && globalData.quickAmounts.length > 0) {
       setQuickAmounts(globalData.quickAmounts);
     }
     setProgressPercent(percent);
-    setDrinkRecords(globalData.drinkRecords.slice(0, 5)); // 只显示最近5条记录
-    setReminderEnabled(globalData.reminderSettings.enabled);
-    setReminderText(getReminderText(globalData.reminderSettings));
+    setDrinkRecords((globalData.drinkRecords || []).slice(0, 5)); // 只显示最近5条记录
+
+    const reminderSettings = globalData.reminderSettings || {
+      enabled: true,
+      interval: 60,
+    };
+    setReminderEnabled(reminderSettings.enabled);
+    setReminderText(getReminderText(reminderSettings));
     setEncouragementText(getEncouragementText(percent));
   };
 

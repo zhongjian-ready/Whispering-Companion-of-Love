@@ -1,13 +1,21 @@
 import { Button, Switch, Toast } from '@nutui/nutui-react-taro';
-import { Image, Picker, View } from '@tarojs/components';
+import {
+  Image,
+  Input,
+  Picker,
+  Button as TaroButton,
+  View,
+} from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import { useState } from 'react';
 import { getSettings, updateSettings } from '../../api/settings';
-import { getUserInfo } from '../../api/user';
+import { getUserInfo, login, updateUserInfo } from '../../api/user';
 import './index.css';
 
 const Settings = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({});
+  const [userLocation, setUserLocation] = useState(null);
   const [dailyGoal, setDailyGoal] = useState(2000);
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [reminderInterval, setReminderInterval] = useState(60);
@@ -27,6 +35,10 @@ const Settings = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
 
+  // 登录相关状态
+  const [loginAvatar, setLoginAvatar] = useState('');
+  const [loginNickname, setLoginNickname] = useState('');
+
   const intervalOptions = [
     { value: 30, label: '30分钟' },
     { value: 45, label: '45分钟' },
@@ -39,9 +51,54 @@ const Settings = () => {
 
   useDidShow(() => {
     console.log('Settings Page: useDidShow triggered');
-    fetchUserInfo();
-    fetchSettings();
+    checkLoginStatus();
   });
+
+  const checkLoginStatus = () => {
+    const userId = Taro.getStorageSync('userId');
+    if (userId) {
+      setIsLoggedIn(true);
+      fetchUserInfo();
+      fetchSettings();
+      fetchLocation();
+    } else {
+      setIsLoggedIn(false);
+    }
+  };
+
+  const fetchLocation = () => {
+    const loc = Taro.getStorageSync('userLocation');
+    if (loc) {
+      setUserLocation(loc);
+    } else {
+      // 尝试从 globalData 获取
+      if (app.globalData.userLocation) {
+        setUserLocation(app.globalData.userLocation);
+      }
+    }
+  };
+
+  const handleUpdateLocation = () => {
+    Taro.chooseLocation({
+      success: res => {
+        console.log('Choose location:', res);
+        const location = {
+          latitude: res.latitude,
+          longitude: res.longitude,
+          address: res.address,
+          name: res.name,
+        };
+        setUserLocation(location);
+        Taro.setStorageSync('userLocation', location);
+        if (app.globalData) {
+          app.globalData.userLocation = location;
+        }
+      },
+      fail: err => {
+        console.error('Choose location failed:', err);
+      },
+    });
+  };
 
   const fetchUserInfo = () => {
     const userId = Taro.getStorageSync('userId');
@@ -55,6 +112,137 @@ const Settings = () => {
         .catch(err => {
           console.error('获取用户信息失败:', err);
         });
+    }
+  };
+
+  // 选择头像
+  const onChooseAvatar = e => {
+    console.log('onChooseAvatar triggered', e);
+    const { avatarUrl } = e.detail;
+    setLoginAvatar(avatarUrl);
+  };
+
+  // 输入昵称
+  const onNicknameBlur = e => {
+    if (e.detail && e.detail.value) {
+      setLoginNickname(e.detail.value);
+    }
+  };
+
+  // 获取手机号并登录
+  const onGetPhoneNumber = async e => {
+    if (!loginAvatar) {
+      Taro.showToast({ title: '请先选择头像', icon: 'none' });
+      return;
+    }
+    if (!loginNickname) {
+      Taro.showToast({ title: '请填写昵称', icon: 'none' });
+      return;
+    }
+
+    if (e.detail.errMsg === 'getPhoneNumber:ok') {
+      const phoneCode = e.detail.code;
+      console.log('获取手机号 code:', phoneCode);
+      await handleLogin(phoneCode);
+    } else {
+      console.error('获取手机号失败:', e.detail.errMsg);
+
+      // 区分是用户拒绝还是不支持
+      const errMsg = e.detail.errMsg || '';
+      let content = '获取手机号失败，是否跳过手机号继续登录？';
+
+      // 个人账号通常报错: getPhoneNumber:fail no permission
+      if (errMsg.includes('no permission')) {
+        content =
+          '当前小程序账号类型（个人账号）不支持获取手机号。是否跳过手机号继续登录？';
+      } else if (errMsg.includes('user deny')) {
+        content = '您拒绝了手机号授权。是否跳过手机号继续登录？';
+      }
+
+      Taro.showModal({
+        title: '提示',
+        content: content,
+        confirmText: '继续登录',
+        cancelText: '取消',
+        success: res => {
+          if (res.confirm) {
+            handleLogin(null); // 允许不带手机号登录
+          }
+        },
+      });
+    }
+  };
+
+  const handleLogin = async phoneCode => {
+    Taro.showLoading({ title: '登录中...' });
+    try {
+      // 1. 获取登录 code
+      const { code } = await Taro.login();
+
+      // 2. 后端登录
+      // 注意：如果后端支持同时处理 phoneCode，可以一起传过去
+      const loginRes = await login(code);
+      console.log('登录成功:', loginRes);
+
+      const userId = loginRes.user_id || loginRes.userId;
+      const openid = loginRes.openid;
+
+      Taro.setStorageSync('userId', userId);
+      Taro.setStorageSync('openid', openid);
+
+      // 3. 上传头像
+      let finalAvatarUrl = loginAvatar;
+      if (
+        loginAvatar.startsWith('http://tmp/') ||
+        loginAvatar.startsWith('wxfile://')
+      ) {
+        try {
+          const uploadRes = await Taro.cloud.uploadFile({
+            cloudPath: `avatars/${userId}_${Date.now()}.png`,
+            filePath: loginAvatar,
+          });
+          finalAvatarUrl = uploadRes.fileID;
+        } catch (err) {
+          console.error('头像上传失败', err);
+        }
+      }
+
+      // 4. 更新用户信息 (包含手机号code，如果后端支持)
+      const updateData = {
+        user_id: userId,
+        nickname: loginNickname,
+        avatar_url: finalAvatarUrl,
+      };
+
+      // 只有当 phoneCode 存在时才添加，避免传 undefined
+      if (phoneCode) {
+        updateData.phone_code = phoneCode;
+      }
+
+      await updateUserInfo(updateData);
+
+      Taro.hideLoading();
+      Taro.showToast({ title: '登录成功', icon: 'success' });
+
+      // 立即更新本地显示，无需等待接口刷新
+      setUserInfo(prev => ({
+        ...prev,
+        user_id: userId,
+        nickname: updateData.nickname,
+        avatar_url: updateData.avatar_url,
+        // 注意：手机号需要后端解密后才能显示，这里暂时无法立即更新手机号
+      }));
+
+      // 刷新状态
+      checkLoginStatus();
+
+      // 刷新全局数据
+      app.globalData.userId = userId;
+      app.globalData.openid = openid;
+    } catch (err) {
+      console.error('登录流程失败', err);
+      Taro.hideLoading();
+      Taro.showToast({ title: '登录失败', icon: 'none' });
     }
   };
 
@@ -342,20 +530,100 @@ const Settings = () => {
   return (
     <View className="container">
       {/* 用户信息卡片 */}
-      <View className="card user-card">
-        <Image
-          className="user-avatar"
-          src={
-            userInfo.avatar_url ||
-            'https://img12.360buyimg.com/imagetools/jfs/t1/196430/38/8105/14329/60c806a4Ed506298a/e6de9fb7b8490f38.png'
-          }
-          mode="aspectFill"
-        />
-        <View className="user-info">
-          <View className="user-nickname">{userInfo.nickname || '未登录'}</View>
-          <View className="user-id">ID: {userInfo.user_id || '-'}</View>
+      {isLoggedIn ? (
+        <View className="card user-card">
+          <Image
+            className="user-avatar"
+            src={
+              userInfo.avatar_url ||
+              'https://img12.360buyimg.com/imagetools/jfs/t1/196430/38/8105/14329/60c806a4Ed506298a/e6de9fb7b8490f38.png'
+            }
+            mode="aspectFill"
+          />
+          <View className="user-info">
+            <View className="user-nickname">
+              {userInfo.nickname || '未登录'}
+            </View>
+            {userInfo.phone && (
+              <View className="user-phone">手机: {userInfo.phone}</View>
+            )}
+            {userLocation && (
+              <View
+                className="user-location"
+                onClick={handleUpdateLocation}
+                style={{ display: 'flex', alignItems: 'center' }}
+              >
+                位置:{' '}
+                {userLocation.address ||
+                  `${userLocation.latitude.toFixed(
+                    2
+                  )}, ${userLocation.longitude.toFixed(2)}`}
+                <View
+                  className="location-tip"
+                  style={{ fontSize: '12px', color: '#999', marginLeft: '5px' }}
+                >
+                  (点击更新)
+                </View>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
+      ) : (
+        <View className="card login-card">
+          <View className="login-title">登录以同步数据</View>
+          <View className="login-form">
+            <TaroButton
+              className="avatar-wrapper"
+              openType="chooseAvatar"
+              onChooseAvatar={onChooseAvatar}
+              style={{
+                width: '80px',
+                height: '80px',
+                padding: 0,
+                borderRadius: '50%',
+                marginBottom: '20px',
+                background: 'none',
+                border: 'none',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Image
+                className="avatar-img"
+                src={
+                  loginAvatar ||
+                  'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'
+                }
+                mode="aspectFill"
+                style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+              />
+            </TaroButton>
+            <Input
+              className="nickname-input"
+              type="nickname"
+              placeholder="请输入昵称"
+              onBlur={onNicknameBlur}
+              onInput={e => setLoginNickname(e.detail.value)}
+              style={{
+                marginBottom: '20px',
+                borderBottom: '1px solid #eee',
+                height: '40px',
+                width: '100%',
+                textAlign: 'center',
+              }}
+            />
+            <Button
+              type="primary"
+              className="login-btn"
+              openType="getPhoneNumber"
+              onGetPhoneNumber={onGetPhoneNumber}
+            >
+              一键登录
+            </Button>
+          </View>
+        </View>
+      )}
 
       {/* 每日目标设置 */}
       <View className="card">

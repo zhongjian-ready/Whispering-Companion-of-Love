@@ -653,15 +653,18 @@ const Settings = () => {
       {/* 会员中心入口 */}
       <View
         className="card"
-        onClick={() => Taro.navigateTo({ url: '/pages/vip/index' })}
+        onClick={() =>
+          Taro.showToast({ title: '功能开发中，敬请期待', icon: 'none' })
+        }
+        style={{ opacity: 0.6 }}
       >
         <View className="setting-item" style={{ borderBottom: 'none' }}>
           <View className="setting-label">
             <View
               className="label-text"
-              style={{ color: '#d4af37', fontWeight: 'bold' }}
+              style={{ color: '#999', fontWeight: 'bold' }}
             >
-              👑 会员中心
+              👑 会员中心 (开发中)
             </View>
             <View className="label-desc">开通会员，解锁更多功能</View>
           </View>
